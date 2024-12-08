@@ -22,7 +22,10 @@ npx junit-to-ctrf path/to/junit.xml
 
 `-t`, `--tool` <toolName>: Tool name to include in the CTRF report.
 
+`-u`, `--use-suite-name` <useSuiteName>: Use suite name in the test name, defaults to true.
+
 `-e`, `--env` <envProperties>: Environment properties to include in the CTRF report. Accepts multiple properties in the format KEY=value.
+
 
 ## Examples
 
@@ -57,6 +60,12 @@ npx junit-to-ctrf path/to/junit.xml -e appName=MyApp buildName=MyBuild
 ```
 
 See [CTRF schema](https://www.ctrf.io/docs/schema/environment) for possible environment properties
+
+### Exclude Suite Name
+
+```sh
+npx junit-to-ctrf path/to/junit.xml -u false
+```
 
 ### Full Command
 

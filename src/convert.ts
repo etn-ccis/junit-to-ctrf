@@ -61,7 +61,7 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
   return testCases;
 }
 
-function convertToCTRFTest(testCase: JUnitTestCase): CtrfTest {
+function convertToCTRFTest(testCase: JUnitTestCase, useSuiteName: boolean): CtrfTest {
   let status: CtrfTest['status'] = 'other';
 
   if (testCase.failure) {
@@ -76,21 +76,27 @@ function convertToCTRFTest(testCase: JUnitTestCase): CtrfTest {
 
   const durationMs = Math.round(parseFloat(testCase.time) * 1000);
 
+  const testName = useSuiteName
+    ? `${testCase.suite}: ${testCase.name}`
+    : testCase.name;
+
   return {
-    name: `${testCase.suite}: ${testCase.name}`,
+    name: testName,
     status,
     duration: durationMs,
     message: testCase.failure || testCase.error ? (testCase.failure || testCase.error) : undefined,
     trace: testCase.failure || testCase.error ? (testCase.failure || testCase.error) : undefined,
+    suite: testCase.suite || ''
   };
 }
 
 function createCTRFReport(
   testCases: JUnitTestCase[],
   toolName?: string,
-  envProps?: Record<string, any>
+  envProps?: Record<string, any>,
+  useSuiteName?: boolean
 ): CtrfReport {
-  const ctrfTests = testCases.map(convertToCTRFTest);
+  const ctrfTests = testCases.map(testCase => convertToCTRFTest(testCase, !!useSuiteName));
   const passed = ctrfTests.filter(test => test.status === 'passed').length;
   const failed = ctrfTests.filter(test => test.status === 'failed').length;
   const skipped = ctrfTests.filter(test => test.status === 'skipped').length;
@@ -131,11 +137,12 @@ export async function convertJUnitToCTRF(
   junitPath: string,
   outputPath?: string,
   toolName?: string,
-  envProps?: string[]
+  envProps?: string[],
+  useSuiteName?: boolean
 ): Promise<void> {
   const testCases = await parseJUnitReport(junitPath);
   const envPropsObj = envProps ? Object.fromEntries(envProps.map(prop => prop.split('='))) : {};
-  const ctrfReport = createCTRFReport(testCases, toolName, envPropsObj);
+  const ctrfReport = createCTRFReport(testCases, toolName, envPropsObj, useSuiteName);
 
   const defaultOutputPath = path.join('ctrf', 'ctrf-report.json');
   const finalOutputPath = path.resolve(outputPath || defaultOutputPath);
