@@ -30,12 +30,18 @@ yargs(hideBin(process.argv))
           alias: 'e',
           type: 'array',
           description: 'Environment properties',
+        })
+        .option('use-suite-name', {
+          alias: 'u',
+          type: 'boolean',
+          default: true,
+          description: 'Use suite name in the test name',
         });
     },
     async (argv) => {
       try {
-        const { path, output, tool, env } = argv;
-        await convertJUnitToCTRF(path as string, output as string, tool as string, env as string[]);
+        const { path, output, tool, env, useSuiteName  } = argv;
+        await convertJUnitToCTRF(path as string, output as string, tool as string, env as string[], useSuiteName);
         console.log('Conversion completed successfully.');
       } catch (error: any) {
         console.error('Error:', error.message);
