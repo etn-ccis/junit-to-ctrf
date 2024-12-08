@@ -32,7 +32,6 @@ export interface CtrfTest {
   suite?: string
   message?: string
   trace?: string
-  line?: string
   rawStatus?: string
   tags?: string[]
   type?: string

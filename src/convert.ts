@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import xml2js from 'xml2js';
-import { CtrfReport, CtrfTest, CtrfEnvironment, Tool } from '../types/ctrf';
+import { CtrfReport, CtrfTest, Tool } from '../types/ctrf';
 
 interface JUnitTestCase {
   suite: string;
@@ -39,15 +39,24 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
     }
     if (suite.testsuite) {
       suite.testsuite.forEach((nestedSuite: any) => {
-        parseTestSuite(nestedSuite, suiteName);
+        const nestedSuiteName = nestedSuite.$.name || suiteName;
+        parseTestSuite(nestedSuite, nestedSuiteName);
       });
     }
   };
 
-  result.testsuites.testsuite.forEach((suite: any) => {
+  if (result.testsuites && result.testsuites.testsuite) {
+    result.testsuites.testsuite.forEach((suite: any) => {
+      const suiteName = suite.$.name;
+      parseTestSuite(suite, suiteName);
+    });
+  } else if (result.testsuite) {
+    const suite = result.testsuite;
     const suiteName = suite.$.name;
     parseTestSuite(suite, suiteName);
-  });
+  } else {
+    console.warn('No test suites found in the provided file.');
+  }
 
   return testCases;
 }
