@@ -8,13 +8,19 @@ interface JUnitTestCase {
   classname: string;
   name: string;
   time: string;
-  failure?: string;
-  error?: string;
+  hasFailure: boolean;
+  failureTrace: string | undefined,
+  failureMessage: string | undefined,
+  failureType: string | undefined,
+  hasError: boolean,
+  errorTrace: string | undefined,
+  errorMessage: string | undefined,
+  errorType: string | undefined,
   skipped?: boolean;
 }
 
 async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
-  console.log('Reading JUnit report file:', filePath); 
+  console.log('Reading JUnit report file:', filePath);
   const xml = await fs.readFile(filePath, 'utf-8');
   const result = await xml2js.parseStringPromise(xml);
   const testCases: JUnitTestCase[] = [];
@@ -23,16 +29,31 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
     if (suite.testcase) {
       suite.testcase.forEach((testCase: any) => {
         const { classname, name, time } = testCase.$;
-        const failure = testCase.failure ? testCase.failure[0] : undefined;
-        const error = testCase.error ? testCase.error[0] : undefined;
+
+        const hasFailure = testCase.failure !== undefined;
+        const failureTrace = hasFailure ? (testCase.failure[0]?._ || '') : undefined;
+        const failureMessage = hasFailure ? (testCase.failure[0]?.$?.message || '') : undefined;
+        const failureType = hasFailure ? (testCase.failure[0]?.$?.type || '') : undefined;
+
+        const hasError = testCase.error !== undefined;
+        const errorTrace = hasError ? (testCase.error[0]?._ || '') : undefined;
+        const errorMessage = hasError ? (testCase.error[0]?.$?.message || '') : undefined;
+        const errorType = hasError ? (testCase.error[0]?.$?.type || '') : undefined;
+
         const skipped = testCase.skipped !== undefined;
         testCases.push({
           suite: suiteName,
           classname,
           name,
           time,
-          failure: failure ? (typeof failure === 'string' ? failure : failure._) : undefined,
-          error: error ? (typeof error === 'string' ? error : error._) : undefined,
+          hasFailure,
+          failureTrace,
+          failureMessage,
+          failureType,
+          hasError,
+          errorTrace,
+          errorMessage,
+          errorType,
           skipped,
         });
       });
@@ -64,9 +85,9 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
 function convertToCTRFTest(testCase: JUnitTestCase, useSuiteName: boolean): CtrfTest {
   let status: CtrfTest['status'] = 'other';
 
-  if (testCase.failure) {
+  if (testCase.hasFailure) {
     status = 'failed';
-  } else if (testCase.error) {
+  } else if (testCase.hasError) {
     status = 'failed';
   } else if (testCase.skipped) {
     status = 'skipped';
@@ -74,7 +95,7 @@ function convertToCTRFTest(testCase: JUnitTestCase, useSuiteName: boolean): Ctrf
     status = 'passed';
   }
 
-  const durationMs = Math.round(parseFloat(testCase.time) * 1000);
+  const durationMs = Math.round(parseFloat(testCase.time || '0') * 1000);
 
   const testName = useSuiteName
     ? `${testCase.suite}: ${testCase.name}`
@@ -84,9 +105,9 @@ function convertToCTRFTest(testCase: JUnitTestCase, useSuiteName: boolean): Ctrf
     name: testName,
     status,
     duration: durationMs,
-    message: testCase.failure || testCase.error ? (testCase.failure || testCase.error) : undefined,
-    trace: testCase.failure || testCase.error ? (testCase.failure || testCase.error) : undefined,
-    suite: testCase.suite || ''
+    message: testCase.failureMessage || testCase.errorMessage || undefined,
+    trace: testCase.failureTrace || testCase.errorTrace || undefined,
+    suite: testCase.suite || '',
   };
 }
 
@@ -110,8 +131,8 @@ function createCTRFReport(
     skipped,
     pending,
     other,
-    start: 0, 
-    stop: 0, 
+    start: 0,
+    stop: 0,
   };
 
   const tool: Tool = {
@@ -150,6 +171,6 @@ export async function convertJUnitToCTRF(
   const outputDir = path.dirname(finalOutputPath);
   await fs.ensureDir(outputDir);
 
-  console.log('Writing CTRF report to:', finalOutputPath); 
+  console.log('Writing CTRF report to:', finalOutputPath);
   await fs.outputJson(finalOutputPath, ctrfReport, { spaces: 2 });
 }
