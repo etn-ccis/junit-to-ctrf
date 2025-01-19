@@ -1,9 +1,13 @@
 {
   "name": "junit-to-ctrf",
-  "version": "0.0.7",
-  "description": "",
+  "version": "0.0.8",
+  "description": "Convert JUnit XML reports to CTRF JSON",
   "main": "index.js",
   "scripts": {
+    "build": "npx tsc",
+    "run:junit": "node dist/cli.js test-junit.xml",
+    "run:minitest": "node dist/cli.js test-minitest-junit.xml",
+    "run:surefire": "node dist/cli.js test-surefire.xml", 
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -14,6 +18,8 @@
     "README.md"
   ],
   "author": "Matthew Thomas",
+  "repository": "github:ctrf-io/playwright-ctrf-json-report",
+  "homepage": "https://ctrf.io",
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^11.2.0",
