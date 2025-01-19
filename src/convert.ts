@@ -16,6 +16,8 @@ interface JUnitTestCase {
   errorTrace: string | undefined,
   errorMessage: string | undefined,
   errorType: string | undefined,
+  file?: string,
+  lineno?: string,
   skipped?: boolean;
 }
 
@@ -28,7 +30,7 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
   const parseTestSuite = (suite: any, suiteName: string) => {
     if (suite.testcase) {
       suite.testcase.forEach((testCase: any) => {
-        const { classname, name, time } = testCase.$;
+        const { classname, file, lineno, name, time } = testCase.$;
 
         const hasFailure = testCase.failure !== undefined;
         const failureTrace = hasFailure ? (testCase.failure[0]?._ || '') : undefined;
@@ -46,6 +48,8 @@ async function parseJUnitReport(filePath: string): Promise<JUnitTestCase[]> {
           classname,
           name,
           time,
+          file,
+          lineno,
           hasFailure,
           failureTrace,
           failureMessage,
@@ -101,10 +105,14 @@ function convertToCTRFTest(testCase: JUnitTestCase, useSuiteName: boolean): Ctrf
     ? `${testCase.suite}: ${testCase.name}`
     : testCase.name;
 
+  const line = testCase.lineno ? parseInt(testCase.lineno) : undefined;
+
   return {
     name: testName,
     status,
     duration: durationMs,
+    filePath: testCase.file,
+    line: line,
     message: testCase.failureMessage || testCase.errorMessage || undefined,
     trace: testCase.failureTrace || testCase.errorTrace || undefined,
     suite: testCase.suite || '',
