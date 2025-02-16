@@ -23,6 +23,7 @@ This package is useful if there isn't a CTRF reporter available for your test fr
 <p style="font-size: 14px; margin: 1rem 0;">
 Maintained by <a href="https://github.com/ma11hewthomas">Matthew Thomas</a><br/>
 Contributions are very welcome! <br/>
+Explore more <a href="https://www.ctrf.io/integrations">integrations</a>
 </p>
 </div>
 
