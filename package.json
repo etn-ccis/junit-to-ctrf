@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "npx tsc",
+    "prepare": "npm run build",
     "run:junit": "node dist/cli.js reports/test-junit.xml --output reports/test-junit-ctrf.json",
     "run:minitest": "node dist/cli.js reports/test-minitest-junit.xml --output reports/test-minitest-junit-ctrf.json",
     "run:surefire": "node dist/cli.js reports/test-surefire.xml --output reports/test-surefire-ctrf.json", 
@@ -16,12 +17,16 @@
   "bin": {
     "junit-to-ctrf": "./dist/cli.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
+  "preferGlobal": true,
   "files": [
     "dist/",
     "README.md"
   ],
   "author": "Matthew Thomas",
-  "repository": "github:ctrf-io/playwright-ctrf-json-report",
+  "repository": "github:etn-ccis/junit-to-ctrf",
   "homepage": "https://ctrf.io",
   "license": "MIT",
   "dependencies": {
@@ -36,7 +41,6 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.7",
     "@types/xml2js": "^0.4.14",
-    "@types/yargs": "^17.0.32",
-    "typescript": "^5.4.5"
+    "@types/yargs": "^17.0.32"
   }
 }
